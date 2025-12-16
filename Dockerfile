@@ -1,19 +1,17 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
-# System deps for psycopg (binary usually enough, keep lean)
 RUN pip install --no-cache-dir --upgrade pip
 
-# Copy only dependency metadata first for caching
-COPY pyproject.toml /app/pyproject.toml
-COPY poetry.lock /app/poetry.lock
+COPY pyproject.toml poetry.lock /app/
 
 RUN pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-interaction --no-ansi --no-root
 
-# Copy the rest
 COPY . /app
+
+ENV PYTHONPATH=/app
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
